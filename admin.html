@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel CMS - StepWave Innovations</title>
+  
+  <link rel="icon" type="image/png" href="images/logo.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* Admin Specific Styling */
+    body {
+      background-color: #060911;
+    }
+    
+    .admin-wrapper {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .admin-sidebar {
+      width: 260px;
+      background: rgba(16, 24, 39, 0.95);
+      border-right: 1px solid var(--border-color);
+      padding: 30px 20px;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 100;
+    }
+
+    .admin-main {
+      margin-left: 260px;
+      flex: 1;
+      padding: 40px;
+      max-width: calc(100vw - 260px);
+    }
+
+    .admin-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 18px;
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .admin-nav-item:hover, .admin-nav-item.active {
+      background: var(--primary-gradient);
+      color: #000;
+      box-shadow: var(--shadow-glow);
+    }
+
+    .admin-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 28px;
+      margin-bottom: 30px;
+    }
+
+    .admin-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    .admin-table th {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--primary);
+      padding: 14px;
+      border-bottom: 2px solid var(--border-glow);
+    }
+
+    .admin-table td {
+      padding: 14px;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+      vertical-align: middle;
+    }
+
+    .action-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: #fff;
+    }
+
+    .btn-edit { background: #3b82f6; }
+    .btn-delete { background: #ef4444; }
+    .btn-reply { background: #25D366; }
+
+    /* Login Screen */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: #0a0e17;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-glow);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow-lg);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN SCREEN OVERLAY -->
+  <div class="login-overlay" id="login-screen">
+    <div class="login-card">
+      <a href="index.html" class="logo" style="justify-content: center; margin-bottom: 20px;">
+        <img src="images/logo.png" alt="StepWave Logo">
+        <span>Step<span class="gradient-text">Wave Admin</span></span>
+      </a>
+      <h2 style="font-size: 1.5rem; margin-bottom: 6px;">Login Portal Manager</h2>
+      <p style="color: var(--text-muted); font-size: 0.875rem; margin-bottom: 28px;">Masukkan kredensial admin untuk mengelola website.</p>
+
+      <form id="admin-login-form">
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label">Username</label>
+          <input type="text" id="login-username" class="form-input" value="admin" required>
+        </div>
+        <div class="form-group" style="text-align: left;">
+          <label class="form-label">Password</label>
+          <input type="password" id="login-password" class="form-input" value="admin123" required>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          <i class="fas fa-lock-open"></i> Masuk Ke Admin Dashboard
+        </button>
+      </form>
+      <div style="margin-top: 20px; font-size: 0.8rem; color: var(--text-muted);">
+        Default Login: Username: <code>admin</code> | Password: <code>admin123</code>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN ADMIN DASHBOARD WRAPPER -->
+  <div class="admin-wrapper" id="admin-dashboard" style="display: none;">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <a href="index.html" class="logo" style="margin-bottom: 30px;">
+        <img src="images/logo.png" alt="StepWave Logo">
+        <span>Step<span class="gradient-text">Wave</span></span>
+      </a>
+
+      <nav style="flex: 1;">
+        <div class="admin-nav-item active" data-tab="tab-dashboard">
+          <i class="fas fa-chart-line"></i> Dashboard
+        </div>
+        <div class="admin-nav-item" data-tab="tab-products">
+          <i class="fas fa-shoe-prints"></i> Kelola Produk
+        </div>
+        <div class="admin-nav-item" data-tab="tab-blog">
+          <i class="fas fa-newspaper"></i> Kelola Artikel
+        </div>
+        <div class="admin-nav-item" data-tab="tab-settings">
+          <i class="fas fa-sliders-h"></i> Pengaturan Web
+        </div>
+        <div class="admin-nav-item" data-tab="tab-messages">
+          <i class="fas fa-inbox"></i> Pesan Masuk <span id="badge-msg-count" style="background: var(--primary); color:#000; border-radius:10px; padding:2px 8px; font-size:0.75rem; margin-left:auto;">0</span>
+        </div>
+      </nav>
+
+      <div style="padding-top: 20px; border-top: 1px solid var(--border-color);">
+        <a href="index.html" target="_blank" class="btn btn-secondary btn-sm" style="width: 100%; margin-bottom: 10px;">
+          <i class="fas fa-globe"></i> Lihat Web Utama
+        </a>
+        <button class="btn btn-secondary btn-sm" id="btn-logout" style="width: 100%; color: #ef4444; border-color: rgba(239, 68, 68, 0.4);">
+          <i class="fas fa-sign-out-alt"></i> Logout Admin
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="admin-main">
+
+      <!-- TAB 1: DASHBOARD OVERVIEW -->
+      <section class="admin-tab-content" id="tab-dashboard">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+          <div>
+            <h1 style="font-size: 2rem;">Dashboard Manager</h1>
+            <p style="color: var(--text-muted);">Selamat datang kembali, Administrator StepWave.</p>
+          </div>
+          <a href="index.html" target="_blank" class="btn btn-primary btn-sm">
+            <i class="fas fa-external-link-alt"></i> Preview Live Website
+          </a>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px;">
+          <div class="admin-card" style="margin-bottom:0;">
+            <div style="color: var(--primary); font-size: 1.8rem; margin-bottom: 8px;"><i class="fas fa-box"></i></div>
+            <div style="font-size: 1.8rem; font-weight: 800;" id="stat-products-count">0</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Total Produk Aktif</div>
+          </div>
+          <div class="admin-card" style="margin-bottom:0;">
+            <div style="color: var(--secondary); font-size: 1.8rem; margin-bottom: 8px;"><i class="fas fa-newspaper"></i></div>
+            <div style="font-size: 1.8rem; font-weight: 800;" id="stat-blog-count">0</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Artikel Blog SEO</div>
+          </div>
+          <div class="admin-card" style="margin-bottom:0;">
+            <div style="color: #25D366; font-size: 1.8rem; margin-bottom: 8px;"><i class="fas fa-comments"></i></div>
+            <div style="font-size: 1.8rem; font-weight: 800;" id="stat-messages-count">0</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Pesan & Lead Masuk</div>
+          </div>
+          <div class="admin-card" style="margin-bottom:0;">
+            <div style="color: #ff2a6d; font-size: 1.8rem; margin-bottom: 8px;"><i class="fas fa-database"></i></div>
+            <div style="font-size: 1.2rem; font-weight: 700; color: #25D366;">LocalStorage Ready</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted);">Status Data Engine</div>
+          </div>
+        </div>
+
+        <div class="admin-card">
+          <h3 style="font-size: 1.2rem; margin-bottom: 16px;">Ringkasan Sistem CMS</h3>
+          <p style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.6;">
+            Sistem Admin ini terhubung langsung secara real-time dengan halaman utama website StepWave (`index.html`, `products.html`, `blog.html`, `about.html`, dan `contact.html`). Setiap perubahan harga produk, artikel blog, nomor WhatsApp, atau banner promo yang Anda simpan di sini akan <strong>langsung terupdate otomatis</strong> di tampilan publik.
+          </p>
+        </div>
+      </section>
+
+      <!-- TAB 2: KELOLA PRODUK -->
+      <section class="admin-tab-content" id="tab-products" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+          <div>
+            <h1 style="font-size: 2rem;">Kelola Katalog Produk</h1>
+            <p style="color: var(--text-muted);">Tambah, edit harga, ubah deskripsi & hapus produk sepatu StepWave.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-open-add-product">
+            <i class="fas fa-plus"></i> Tambah Produk Baru
+          </button>
+        </div>
+
+        <div class="admin-card" style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Gambar</th>
+                <th>Nama Produk</th>
+                <th>Kategori</th>
+                <th>Harga</th>
+                <th>Badge Tag</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="table-products-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 3: KELOLA ARTIKEL BLOG -->
+      <section class="admin-tab-content" id="tab-blog" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+          <div>
+            <h1 style="font-size: 2rem;">Kelola Artikel & SEO Blog</h1>
+            <p style="color: var(--text-muted);">Publikasikan dan sunting artikel edukasi strategi digital marketing.</p>
+          </div>
+          <button class="btn btn-primary" id="btn-open-add-blog">
+            <i class="fas fa-plus"></i> Tambah Artikel Baru
+          </button>
+        </div>
+
+        <div class="admin-card" style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Judul Artikel</th>
+                <th>Kategori</th>
+                <th>Penulis</th>
+                <th>Tanggal</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="table-blog-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- TAB 4: PENGATURAN KONTEN WEB -->
+      <section class="admin-tab-content" id="tab-settings" style="display: none;">
+        <div style="margin-bottom: 30px;">
+          <h1 style="font-size: 2rem;">Pengaturan Konten Website</h1>
+          <p style="color: var(--text-muted);">Ubah teks hero, slogan, nomor WhatsApp, email, dan banner promo.</p>
+        </div>
+
+        <form class="admin-card" id="settings-form">
+          <h3 style="font-size: 1.2rem; margin-bottom: 20px; color: var(--primary);">Identitas Perusahaan & Banner Promo</h3>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+              <label class="form-label">Nama Perusahaan</label>
+              <input type="text" id="cfg-companyName" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Slogan Utama (Pakai koma untuk pemisah)</label>
+              <input type="text" id="cfg-slogan" class="form-input" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Deskripsi Subtitle Hero Section</label>
+            <textarea id="cfg-heroSubtitle" class="form-input" required></textarea>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+            <div class="form-group">
+              <label class="form-label">Teks Promo Announcement Bar</label>
+              <input type="text" id="cfg-promoBarText" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Kode Kupon Diskon</label>
+              <input type="text" id="cfg-promoBarCode" class="form-input" required>
+            </div>
+          </div>
+
+          <h3 style="font-size: 1.2rem; margin: 30px 0 20px 0; color: var(--primary);">Kontak & WhatsApp Hotlines</h3>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+              <label class="form-label">Nomor WhatsApp (Tanpa +, contoh: 6281234567890)</label>
+              <input type="text" id="cfg-whatsappNumber" class="form-input" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Customer Support</label>
+              <input type="email" id="cfg-email" class="form-input" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Alamat Kantor Headquarters</label>
+            <input type="text" id="cfg-address" class="form-input" required>
+          </div>
+
+          <div style="display: flex; gap: 16px; margin-top: 30px;">
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-save"></i> Simpan Semua Perubahan
+            </button>
+            <button type="button" class="btn btn-secondary" id="btn-reset-data" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);">
+              <i class="fas fa-undo"></i> Reset Ke Data Default awal
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <!-- TAB 5: PESAN MASUK / INQUIRIES -->
+      <section class="admin-tab-content" id="tab-messages" style="display: none;">
+        <div style="margin-bottom: 30px;">
+          <h1 style="font-size: 2rem;">Pesan & Customer Leads</h1>
+          <p style="color: var(--text-muted);">Daftar pertanyaan dan masukan pelanggan dari formulir kontak website.</p>
+        </div>
+
+        <div class="admin-card" style="overflow-x: auto;">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Tanggal</th>
+                <th>Nama Pelanggan</th>
+                <th>Email / HP</th>
+                <th>Subjek</th>
+                <th>Isi Pesan</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="table-messages-body">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL FOR ADD/EDIT PRODUCT -->
+  <div class="modal-backdrop" id="product-form-modal">
+    <div class="modal-content" style="max-width: 600px;">
+      <button class="modal-close" aria-label="Close modal">&times;</button>
+      <h3 style="font-size: 1.5rem; margin-bottom: 20px;" id="product-modal-title">Tambah Produk Baru</h3>
+
+      <form id="form-save-product">
+        <input type="hidden" id="prod-id">
+        <div class="form-group">
+          <label class="form-label">Nama Produk</label>
+          <input type="text" id="prod-name" class="form-input" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label class="form-label">Kategori</label>
+            <select id="prod-category" class="form-input" style="background: rgba(10, 14, 23, 0.8);">
+              <option value="Running">Running</option>
+              <option value="Casual">Casual</option>
+              <option value="Outdoor">Outdoor</option>
+              <option value="Ergonomic">Ergonomic</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Harga (Format: Rp 1.299.000)</label>
+            <input type="text" id="prod-price" class="form-input" required placeholder="Rp 999.000">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label class="form-label">Path / Link Gambar Produk</label>
+            <input type="text" id="prod-img" class="form-input" required placeholder="images/product-1.jpg">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Badge Tag</label>
+            <input type="text" id="prod-tag" class="form-input" placeholder="Bestseller / New">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Deskripsi Singkat Produk</label>
+          <textarea id="prod-desc" class="form-input" required></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Spesifikasi (Pisahkan dengan koma)</label>
+          <input type="text" id="prod-specs" class="form-input" placeholder="Bantalan Aeroflux, Material Microfiber, Anti-Slip">
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          <i class="fas fa-check"></i> Simpan Produk
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FOR ADD/EDIT BLOG -->
+  <div class="modal-backdrop" id="blog-form-modal">
+    <div class="modal-content" style="max-width: 650px;">
+      <button class="modal-close" aria-label="Close modal">&times;</button>
+      <h3 style="font-size: 1.5rem; margin-bottom: 20px;" id="blog-modal-title">Tambah Artikel Baru</h3>
+
+      <form id="form-save-blog">
+        <input type="hidden" id="blog-id">
+        <div class="form-group">
+          <label class="form-label">Judul Artikel</label>
+          <input type="text" id="blog-title-input" class="form-input" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label class="form-label">Kategori</label>
+            <input type="text" id="blog-category-input" class="form-input" required placeholder="Edukasi Footwear">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Penulis / Author</label>
+            <input type="text" id="blog-author-input" class="form-input" required placeholder="Tim R&D StepWave">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px;">
+          <div class="form-group">
+            <label class="form-label">Path / Link Gambar Artikel</label>
+            <input type="text" id="blog-img-input" class="form-input" required placeholder="images/product-1.jpg">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Waktu Baca</label>
+            <input type="text" id="blog-readTime-input" class="form-input" placeholder="4 Menit Baca">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Ringkasan Excerpt</label>
+          <input type="text" id="blog-excerpt-input" class="form-input" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Isi Artikel (Dukungan HTML)</label>
+          <textarea id="blog-content-input" class="form-input" style="min-height: 160px;" required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;">
+          <i class="fas fa-check"></i> Simpan Artikel
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
